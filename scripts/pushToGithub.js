@@ -33,6 +33,10 @@ async function main() {
   });
   console.log('Committed with SHA:', sha);
 
+  console.log('[4.5/5] Creating and checking out main branch...');
+  await git.branch({ fs, dir: '.', ref: 'main', checkout: true });
+  await git.writeRef({ fs, dir: '.', ref: 'HEAD', value: 'refs/heads/main', force: true, symbolic: true });
+
   console.log('[5/5] Pushing to GitHub (main branch)...');
   const pushResult = await git.push({
     fs,
@@ -40,6 +44,7 @@ async function main() {
     dir: '.',
     url: repoUrl,
     ref: 'main',
+    remoteRef: 'main',
     force: true,
     onAuth: () => ({
       username: token,
