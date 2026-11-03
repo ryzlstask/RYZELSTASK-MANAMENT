@@ -283,10 +283,10 @@ export default function EmployeePortalPage() {
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Failed to deliver reminder over WhatsApp');
       }
-      showToast(`WhatsApp reminder sent to ${reminderModal.emp.full_name} (${data.jid || reminderModal.emp.phone_number})`);
+      showToast(data.warning || `WhatsApp reminder sent to ${reminderModal.emp.full_name} (${data.jid || reminderModal.emp.phone_number})`);
       setReminderModal({ open: false, emp: null, text: '' });
     } catch (err: any) {
-      alert(`WhatsApp Delivery Error: ${err.message}`);
+      showToast(`WhatsApp Notice: ${err.message}`);
     } finally {
       setSendingReminder(false);
     }
@@ -304,7 +304,7 @@ export default function EmployeePortalPage() {
       }
       showToast(`Daily WhatsApp reminders dispatched to ${data.dispatchedCount} team members!`);
     } catch (err: any) {
-      alert(`Error dispatching daily reminders: ${err.message}`);
+      showToast(`Notice: ${err.message}`);
     } finally {
       setRunningDailyReminders(false);
     }

@@ -36,6 +36,37 @@ export async function POST(req: Request) {
     const baileysResult = await sendBaileysTextMessage(phone, messageBody);
 
     if (!baileysResult.success) {
+      // Vercel Serverless Test/Demo fallback
+      if (process.env.VERCEL) {
+        let conv = dataStore.getConversations().find(c => c.phone_number === phone);
+        if (!conv) {
+          conv = {
+            id: `conv-${Date.now()}`,
+            phone_number: phone,
+            contact_name: emp?.full_name || 'Team Member',
+            contact_type: 'employee',
+            employee_id: emp?.id,
+            is_human_takeover: false,
+            unread_count: 0,
+            last_message_at: new Date().toISOString(),
+            last_message_preview: messageBody
+          };
+          dataStore.getConversations().unshift(conv);
+        } else {
+          conv.last_message_at = new Date().toISOString();
+          conv.last_message_preview = messageBody;
+        }
+
+        dataStore.sendWhatsAppMessage(conv.id, messageBody, false);
+
+        return NextResponse.json({
+          success: true,
+          simulated: true,
+          jid: phone,
+          warning: 'Vercel Test Mode: Reminder logged in Operations Sheet & Inbox (Real WhatsApp requires Hostinger VPS).'
+        });
+      }
+
       return NextResponse.json(
         {
           success: false,

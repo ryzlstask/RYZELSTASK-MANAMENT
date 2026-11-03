@@ -36,4 +36,6 @@ next-env.d.ts
 # WhatsApp Baileys Auth Session & Private Keys (Must NEVER be committed to public/shared git)
 .baileys_auth_session/
 *.log
+scripts/
+
 

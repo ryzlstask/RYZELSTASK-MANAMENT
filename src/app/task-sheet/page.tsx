@@ -168,7 +168,7 @@ export default function OperationsSheetPage() {
 
       setTasks(prev => prev.map(t => t.id === task.id ? { ...t, last_reminder_sent_at: data.last_reminder_sent_at } : t));
       setReminderToast({
-        message: `WhatsApp reminder dispatched to ${task.assigned_employee_name || 'employee'}!`
+        message: data.warning || `WhatsApp reminder dispatched to ${task.assigned_employee_name || 'employee'}!`
       });
       setTimeout(() => setReminderToast(null), 4000);
     } catch (err: any) {

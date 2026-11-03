@@ -71,6 +71,16 @@ export async function POST(req: Request) {
           taskCount: empTasks.length,
           status: 'delivered'
         });
+      } else if (process.env.VERCEL) {
+        // Record in dataStore and log in test mode
+        dataStore.sendWhatsAppMessage(conv.id, body, true);
+        dispatchedSummaries.push({
+          employee: emp.full_name,
+          phone: emp.phone_number,
+          taskCount: empTasks.length,
+          status: 'simulated_delivered',
+          error: 'Test mode (serverless): Logged to conversation.'
+        });
       } else {
         dispatchedSummaries.push({
           employee: emp.full_name,
@@ -82,7 +92,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const successCount = dispatchedSummaries.filter(s => s.status === 'delivered').length;
+    const successCount = dispatchedSummaries.filter(s => s.status === 'delivered' || s.status === 'simulated_delivered').length;
 
     // Log automation execution
     dataStore.getExecutionLogs().unshift({

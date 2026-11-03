@@ -42,6 +42,17 @@ export async function POST(req: Request) {
     );
 
     if (!baileysRes.success) {
+      if (process.env.VERCEL) {
+        task.last_reminder_sent_at = new Date().toISOString();
+        dataStore.updateTask(task.id, { last_reminder_sent_at: task.last_reminder_sent_at });
+        return NextResponse.json({
+          success: true,
+          simulated: true,
+          last_reminder_sent_at: task.last_reminder_sent_at,
+          warning: 'Vercel Test Mode: Reminder logged in Operations Sheet (Live WhatsApp requires Hostinger VPS).'
+        });
+      }
+
       return NextResponse.json({
         success: false,
         error: baileysRes.error || 'Failed to dispatch WhatsApp message.'

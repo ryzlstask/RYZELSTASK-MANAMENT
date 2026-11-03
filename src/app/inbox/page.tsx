@@ -289,12 +289,15 @@ export default function WhatsAppInboxPage() {
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        alert(`WhatsApp Delivery Error: ${data.error || 'Failed to transmit message over WhatsApp'}`);
+        setBaileysNotice(`Notice: ${data.error || 'Failed to transmit message over WhatsApp'}`);
         return;
+      }
+      if (data.warning) {
+        setBaileysNotice(data.warning);
       }
       setMessages(prev => [...prev, data.message]);
     } catch (err: any) {
-      alert(`Network Error: ${err.message}`);
+      setBaileysNotice(`Network Error: ${err.message}`);
     }
   };
 

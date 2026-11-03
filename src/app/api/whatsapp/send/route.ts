@@ -50,6 +50,16 @@ export async function POST(req: Request) {
     const baileysResult = await sendBaileysTextMessage(targetPhone, message);
 
     if (!baileysResult.success) {
+      if (process.env.VERCEL) {
+        const sentMsg = dataStore.sendWhatsAppMessage(targetConvId || 'conv-1', message, false);
+        return NextResponse.json({
+          success: true,
+          simulated: true,
+          message: sentMsg,
+          warning: 'Vercel Test Mode: WhatsApp socket is offline in serverless environment. Message logged in Inbox (Live 24/7 WhatsApp requires Hostinger VPS).'
+        });
+      }
+
       return NextResponse.json(
         {
           success: false,

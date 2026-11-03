@@ -173,14 +173,15 @@ export function QuickActionModal({ isOpen, onClose, defaultTab = 'task', onActio
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Failed to deliver message via WhatsApp');
       }
-      setSuccessMessage(`WhatsApp message delivered to ${data.jid || waForm.phoneNumber}!`);
+      setSuccessMessage(data.warning || `WhatsApp message delivered to ${data.jid || waForm.phoneNumber}!`);
       setTimeout(() => {
         setSuccessMessage(null);
         onClose();
         if (onActionComplete) onActionComplete();
-      }, 1500);
+      }, 2000);
     } catch (err: any) {
-      alert(`WhatsApp Delivery Notice: ${err.message}`);
+      setSuccessMessage(`Notice: ${err.message}`);
+      setTimeout(() => setSuccessMessage(null), 3000);
     }
   };
 
