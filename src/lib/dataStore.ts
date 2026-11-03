@@ -20,6 +20,7 @@ import {
   TaskCategory
 } from '@/types';
 import { resolvePhoneFromJidOrNumber, normalizePhoneNumber } from '@/lib/phoneUtils';
+import seedStoreData from '../../data/store.json';
 
 // ============================================================================
 // INITIAL SEED DATA FOR RYZELS AI WORKSPACE OPERATIONS
@@ -642,6 +643,39 @@ class OperationsDataStore {
   }
 
   private loadFromDisk() {
+    // 1. Initial fallback from bundled store.json (ensures Vercel and serverless runtimes start with all data)
+    try {
+      if (seedStoreData) {
+        if (Array.isArray(seedStoreData.employees) && seedStoreData.employees.length > 0) {
+          this.employees = seedStoreData.employees as any;
+        }
+        if (Array.isArray(seedStoreData.departments) && seedStoreData.departments.length > 0) {
+          this.departments = seedStoreData.departments as any;
+        }
+        if (Array.isArray(seedStoreData.tasks) && seedStoreData.tasks.length > 0) {
+          this.tasks = seedStoreData.tasks as any;
+        }
+        if (Array.isArray(seedStoreData.clients) && seedStoreData.clients.length > 0) {
+          this.clients = seedStoreData.clients as any;
+        }
+        if (Array.isArray(seedStoreData.websites) && seedStoreData.websites.length > 0) {
+          this.websites = seedStoreData.websites as any;
+        }
+        if (Array.isArray(seedStoreData.websiteChanges) && seedStoreData.websiteChanges.length > 0) {
+          this.websiteChanges = seedStoreData.websiteChanges as any;
+        }
+        if (Array.isArray(seedStoreData.conversations) && seedStoreData.conversations.length > 0) {
+          this.conversations = seedStoreData.conversations as any;
+        }
+        if (Array.isArray(seedStoreData.messages) && seedStoreData.messages.length > 0) {
+          this.messages = seedStoreData.messages as any;
+        }
+      }
+    } catch (e) {
+      console.warn('[DataStore] Seed data fallback warning:', e);
+    }
+
+    // 2. Override with live filesystem store.json if available
     const storage = this.getServerStorage();
     if (!storage) return;
 
