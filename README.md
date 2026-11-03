@@ -124,3 +124,4 @@ OPENAI_API_KEY=
 Once deployed on Hostinger, visit:
 `http://your-domain.com/inbox`
 Scan the pairing QR code with your phone's WhatsApp once, and the live WhatsApp engine will run autonomously on the server.
+
