@@ -53,3 +53,4 @@ export function verifySessionToken(token: string | undefined | null): { valid: b
 
   return { valid: false };
 }
+

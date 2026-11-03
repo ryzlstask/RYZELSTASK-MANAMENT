@@ -9,7 +9,6 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  KeyRound,
   AlertCircle
 } from 'lucide-react';
 
@@ -18,8 +17,8 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const redirectTarget = searchParams.get('from') || '/tasks';
 
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +26,7 @@ function LoginForm() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password) {
-      setError('Please enter both username and password.');
+      setError('Please enter your username and password.');
       return;
     }
 
@@ -47,10 +46,15 @@ function LoginForm() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Invalid credentials. Expected admin / admin123');
+        throw new Error(data.error || 'Invalid username or password.');
       }
 
-      // Smooth transition to protected dashboard
+      // Mark this browser tab session as active
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('ryzels_tab_session', 'active');
+      }
+
+      // Transition to protected dashboard
       router.push(redirectTarget);
       router.refresh();
     } catch (err: any) {
@@ -58,12 +62,6 @@ function LoginForm() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleAutofill = () => {
-    setUsername('admin');
-    setPassword('admin123');
-    setError(null);
   };
 
   return (
@@ -96,15 +94,6 @@ function LoginForm() {
             <ShieldCheck className="w-5 h-5 text-emerald-400" />
             <span className="text-sm font-bold text-white">Secure Manager Access</span>
           </div>
-          <button
-            type="button"
-            onClick={handleAutofill}
-            className="text-[11px] font-semibold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-2.5 py-1 rounded-lg border border-blue-500/20 transition-all flex items-center gap-1"
-            title="Click to load admin / admin123"
-          >
-            <KeyRound className="w-3 h-3" />
-            <span>Autofill</span>
-          </button>
         </div>
 
         {error && (
@@ -128,7 +117,7 @@ function LoginForm() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin"
+                placeholder="Enter username"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                 autoComplete="username"
               />
@@ -147,7 +136,7 @@ function LoginForm() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="admin123"
+                placeholder="Enter password"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-11 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                 autoComplete="current-password"
               />
@@ -162,17 +151,11 @@ function LoginForm() {
             </div>
           </div>
 
-          {/* Quick credentials hint */}
-          <div className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
-            <span>Default credentials:</span>
-            <code className="text-emerald-400 font-mono font-bold">admin / admin123</code>
-          </div>
-
           {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold text-sm shadow-xl shadow-blue-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed group active:scale-[0.99]"
+            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold text-sm shadow-xl shadow-blue-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed group active:scale-[0.99] mt-2"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

@@ -38,6 +38,9 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
   const handleLogout = async () => {
     try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('ryzels_tab_session');
+      }
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {
       // Ignore

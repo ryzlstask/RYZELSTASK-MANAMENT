@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       password !== VALID_CREDENTIALS.password
     ) {
       return NextResponse.json(
-        { error: 'Invalid username or password. Please use admin / admin123' },
+        { error: 'Invalid username or password' },
         { status: 401 }
       );
     }
@@ -33,15 +33,14 @@ export async function POST(req: Request) {
       }
     });
 
-    // Set secure HTTP-only cookie valid for 7 days
+    // Set secure HTTP-only browser session cookie (clears automatically when tab/browser session closes)
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
       value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 // 7 days in seconds
+      path: '/'
     });
 
     return response;
@@ -49,3 +48,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: err.message || 'Login failed' }, { status: 500 });
   }
 }
+

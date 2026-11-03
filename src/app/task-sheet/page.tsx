@@ -481,8 +481,11 @@ export default function OperationsSheetPage() {
 
       {/* Excel Spreadsheet Table */}
       <div className="bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+        <div className="md:hidden flex items-center justify-between px-4 py-2 bg-slate-950/80 border-b border-slate-800 text-[11px] text-emerald-400 font-medium">
+          <span>👈 Swipe table horizontally to view all columns &amp; remarks 👉</span>
+        </div>
+        <div className="overflow-x-auto touch-pan-x">
+          <table className="w-full text-left border-collapse text-xs min-w-[950px]">
             
             {/* Table Header (Excel Styled) */}
             <thead>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
@@ -8,6 +8,21 @@ import { Header } from './Header';
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Tab closure enforcement: require login whenever tab is closed and re-opened
+  useEffect(() => {
+    if (pathname === '/login') return;
+
+    if (typeof window !== 'undefined') {
+      const isTabSessionActive = sessionStorage.getItem('ryzels_tab_session');
+      if (!isTabSessionActive) {
+        // Tab session does not exist (new tab or previously closed tab)
+        fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
+          window.location.href = '/login';
+        });
+      }
+    }
+  }, [pathname]);
 
   // If user is on login page, render full screen clean layout without shell
   if (pathname === '/login') {

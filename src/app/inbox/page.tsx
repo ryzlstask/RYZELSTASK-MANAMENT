@@ -320,7 +320,7 @@ export default function WhatsAppInboxPage() {
         </div>
 
         {/* Global Nav Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl overflow-x-auto max-w-full no-scrollbar">
           <button
             onClick={() => setActiveTab('baileys')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
@@ -955,10 +955,10 @@ export default function WhatsAppInboxPage() {
       {/* TAB 3: LIVE WHATSAPP CONVERSATIONS & HUMAN TAKEOVER                       */}
       {/* ========================================================================= */}
       {activeTab === 'messages' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[640px] animate-in fade-in">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px] lg:h-[640px] animate-in fade-in">
           
           {/* Left 4 Cols: Conversation Threads */}
-          <div className="lg:col-span-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col overflow-hidden">
+          <div className="lg:col-span-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col overflow-hidden max-h-72 lg:max-h-none">
             <div className="p-3.5 border-b border-slate-800 bg-slate-950/60">
               <div className="relative">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
