@@ -193,7 +193,7 @@ export default function TaskAssignmentPage() {
   const priorityFormatted = priority.charAt(0).toUpperCase() + priority.slice(1);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-8 space-y-6">
+    <div className="space-y-6">
       
       {/* Top Banner Navigation */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">

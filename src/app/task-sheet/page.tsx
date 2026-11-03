@@ -298,7 +298,7 @@ export default function OperationsSheetPage() {
   const overdueTasks = tasks.filter(t => t.status !== 'completed' && new Date(t.deadline) < new Date()).length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-8 space-y-6">
+    <div className="space-y-6">
       
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
