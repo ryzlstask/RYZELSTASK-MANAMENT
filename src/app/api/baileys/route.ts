@@ -16,9 +16,9 @@ export async function GET() {
   let liveState = getBaileysLiveState();
 
   // Wait briefly if initializing for the first time
-  if (liveState.status === 'connecting' && !liveState.qrDataUrl) {
-    for (let i = 0; i < 6; i++) {
-      await new Promise(r => setTimeout(r, 250));
+  if ((liveState.status === 'connecting' || liveState.status === 'disconnected') && !liveState.qrDataUrl) {
+    for (let i = 0; i < 10; i++) {
+      await new Promise(r => setTimeout(r, 300));
       liveState = getBaileysLiveState();
       if (liveState.qrDataUrl || liveState.status === 'connected') break;
     }

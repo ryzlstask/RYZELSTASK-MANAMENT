@@ -1,7 +1,7 @@
 import makeWASocket, {
   DisconnectReason,
   useMultiFileAuthState,
-  fetchLatestBaileysVersion,
+  Browsers,
   WASocket
 } from '@whiskeysockets/baileys';
 import QRCode from 'qrcode';
@@ -27,6 +27,12 @@ declare global {
   var __baileysSocket: WASocket | null | undefined;
   var __baileysState: BaileysLiveState | undefined;
   var __baileysInitializing: boolean | undefined;
+}
+
+function getAuthDir(): string {
+  return process.env.VERCEL
+    ? path.join('/tmp', '.baileys_auth_session')
+    : path.join(process.cwd(), '.baileys_auth_session');
 }
 
 if (!globalThis.__baileysState) {
@@ -63,22 +69,21 @@ export async function getOrInitBaileysSocket(): Promise<WASocket | null> {
   };
 
   try {
-    const authDir = path.join(process.cwd(), '.baileys_auth_session');
+    const authDir = getAuthDir();
     if (!fs.existsSync(authDir)) {
       fs.mkdirSync(authDir, { recursive: true });
     }
 
     console.log('[Baileys] Initializing socket with authDir:', authDir);
     const { state, saveCreds } = await useMultiFileAuthState(authDir);
-    const { version } = await fetchLatestBaileysVersion();
-    console.log('[Baileys] WA version:', version);
 
     const sock = makeWASocket({
-      version,
       auth: state,
       logger: pino({ level: 'silent' }),
-      printQRInTerminal: false,
-      browser: ['RYZELS Operations', 'Chrome', '124.0.0']
+      browser: Browsers.windows('Desktop'),
+      connectTimeoutMs: 60000,
+      defaultQueryTimeoutMs: 60000,
+      syncFullHistory: false
     });
 
     globalThis.__baileysSocket = sock;
@@ -257,7 +262,7 @@ export async function disconnectBaileysSocket(): Promise<void> {
       globalThis.__baileysSocket = null;
     }
 
-    const authDir = path.join(process.cwd(), '.baileys_auth_session');
+    const authDir = getAuthDir();
     if (fs.existsSync(authDir)) {
       fs.rmSync(authDir, { recursive: true, force: true });
     }
