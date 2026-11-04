@@ -18,7 +18,10 @@ import {
   FileSpreadsheet,
   RefreshCw,
   Phone,
-  Paperclip
+  Paperclip,
+  Mic,
+  Volume2,
+  FileAudio
 } from 'lucide-react';
 import { Task, TaskPriority, Employee, Department } from '@/types';
 
@@ -31,10 +34,11 @@ export default function TaskAssignmentPage() {
   const [successToast, setSuccessToast] = useState<{ message: string; taskId?: string } | null>(null);
   const [errorToast, setErrorToast] = useState<string | null>(null);
 
-  // Form State: unified Task input (single big space)
+  // Form State: Task Title, Description, Image, Audio
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [selectedDeptId, setSelectedDeptId] = useState<string>('');
-  const [task, setTask] = useState('');
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskDescription, setTaskDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('high');
   const [deadline, setDeadline] = useState(() => {
     const d = new Date();
@@ -45,6 +49,12 @@ export default function TaskAssignmentPage() {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Audio / Voice Note State
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioName, setAudioName] = useState<string>('');
+  const [isAudioDragging, setIsAudioDragging] = useState(false);
+  const audioInputRef = useRef<HTMLInputElement>(null);
 
   // Load permanent employees, departments and recent tasks
   const loadData = async () => {
@@ -121,11 +131,64 @@ export default function TaskAssignmentPage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  // Audio File Handler (Support MP3, WAV, M4A, OGG, WEBM, AAC, FLAC, OPUS)
+  const processAudioFile = (file: File) => {
+    if (file.size > 25 * 1024 * 1024) {
+      alert('Audio file size exceeds 25MB. Please choose a smaller audio file.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setAudioUrl(result);
+      setAudioName(file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAudioFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processAudioFile(file);
+    }
+  };
+
+  const handleAudioDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsAudioDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && (file.type.startsWith('audio/') || /\.(mp3|wav|m4a|ogg|webm|aac|flac|opus)$/i.test(file.name))) {
+      processAudioFile(file);
+    }
+  };
+
+  // Paste handler for audio files / copied voice notes
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.startsWith('audio/')) {
+        const file = item.getAsFile();
+        if (file) {
+          processAudioFile(file);
+          break;
+        }
+      }
+    }
+  };
+
+  const clearAudio = () => {
+    setAudioUrl(null);
+    setAudioName('');
+    if (audioInputRef.current) audioInputRef.current.value = '';
+  };
+
   // Form Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!task.trim()) {
-      setErrorToast('Please enter the task.');
+    if (!taskTitle.trim()) {
+      setErrorToast('Please enter the task title.');
       return;
     }
     if (!selectedEmployeeId) {
@@ -143,13 +206,16 @@ export default function TaskAssignmentPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          task: task.trim(),
+          title: taskTitle.trim(),
+          description: taskDescription.trim() || taskTitle.trim(),
           employeeId: selectedEmployeeId,
           departmentId: selectedDeptId,
           priority,
           deadline,
           hours: estimatedHours,
-          imageUrl: imageUrl || undefined
+          imageUrl: imageUrl || undefined,
+          audioUrl: audioUrl || undefined,
+          audioName: audioName || undefined
         })
       });
 
@@ -167,8 +233,10 @@ export default function TaskAssignmentPage() {
       });
 
       // Clear Form
-      setTask('');
+      setTaskTitle('');
+      setTaskDescription('');
       clearImage();
+      clearAudio();
     } catch (err: any) {
       console.error('Task assignment error:', err);
       setErrorToast(err.message || 'Failed to assign task.');
@@ -347,26 +415,44 @@ export default function TaskAssignmentPage() {
               </div>
             </div>
 
-            {/* Row 2: ONE BIG SPACE INPUT NAMED "Task *" */}
+            {/* Row 2: Task Title * */}
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <CheckSquare className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Task *</span>
+                  <span>Task Title *</span>
                 </span>
-                <span className="text-[11px] text-slate-400 font-normal">Enter the task instructions / description</span>
+                <span className="text-[11px] text-slate-400 font-normal">Primary title of the task</span>
               </label>
-              <textarea
-                rows={4}
-                value={task}
-                onChange={(e) => setTask(e.target.value)}
-                placeholder="Enter task (e.g. Image Editing, Design 3 Banner Creatives for Meta Ads Campaign, Configure domain DNS records...)"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors leading-relaxed"
+              <input
+                type="text"
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+                placeholder="e.g. Design 3 Banner Creatives, Update contact form, Configure DNS..."
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors font-medium"
                 required
               />
             </div>
 
-            {/* Row 3: Due Date & Priority & Estimated Hours */}
+            {/* Row 3: Task Description / Instructions (Optional) */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Task Description / Instructions (Optional)</span>
+                </span>
+                <span className="text-[11px] text-slate-400 font-normal">Details, requirements, guidelines</span>
+              </label>
+              <textarea
+                rows={3}
+                value={taskDescription}
+                onChange={(e) => setTaskDescription(e.target.value)}
+                placeholder="Enter specific instructions, reference URLs, guidelines or notes for the employee..."
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors leading-relaxed"
+              />
+            </div>
+
+            {/* Row 4: Due Date & Priority & Estimated Hours */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
@@ -415,7 +501,7 @@ export default function TaskAssignmentPage() {
               </div>
             </div>
 
-            {/* Row 4: Place Image (Upload / URL) */}
+            {/* Row 5: Place Image (Upload / URL) */}
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-slate-300 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
@@ -499,6 +585,90 @@ export default function TaskAssignmentPage() {
               )}
             </div>
 
+            {/* Row 6: Attach Voice Note / Audio (Drag & Drop or Ctrl+V Paste) */}
+            <div className="space-y-2" onPaste={handlePaste}>
+              <label className="block text-xs font-semibold text-slate-300 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Mic className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Attach Voice Note / Audio (Drag & Drop or Ctrl+V Paste)</span>
+                </span>
+                {audioUrl && (
+                  <button
+                    type="button"
+                    onClick={clearAudio}
+                    className="text-[11px] text-rose-400 hover:text-rose-300 flex items-center gap-1"
+                  >
+                    <X className="w-3 h-3" />
+                    <span>Remove Audio</span>
+                  </button>
+                )}
+              </label>
+
+              {!audioUrl ? (
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsAudioDragging(true);
+                  }}
+                  onDragLeave={() => setIsAudioDragging(false)}
+                  onDrop={handleAudioDrop}
+                  onClick={() => audioInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all text-center group ${
+                    isAudioDragging
+                      ? 'border-emerald-500 bg-emerald-950/20'
+                      : 'border-slate-800/90 hover:border-emerald-500/50 bg-slate-950/60 hover:bg-slate-900/50'
+                  }`}
+                >
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform mb-2">
+                    <Mic className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs font-semibold text-slate-200">
+                    Drag and drop any type of voice / audio file here, or click to browse
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    You can also <span className="text-emerald-400 font-medium underline">paste (Ctrl+V)</span> any copied voice note or audio file
+                  </p>
+                  
+                  {/* Supported audio formats badges */}
+                  <div className="flex items-center justify-center gap-1.5 mt-2.5 flex-wrap">
+                    {['MP3', 'WAV', 'M4A', 'OGG', 'WEBM', 'AAC', 'FLAC', 'OPUS'].map((fmt) => (
+                      <span
+                        key={fmt}
+                        className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400"
+                      >
+                        {fmt}
+                      </span>
+                    ))}
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={audioInputRef}
+                    onChange={handleAudioFileChange}
+                    accept="audio/*,.mp3,.wav,.m4a,.ogg,.webm,.aac,.flac,.opus"
+                    className="hidden"
+                  />
+                </div>
+              ) : (
+                /* Audio Preview Player */
+                <div className="rounded-xl border border-emerald-800/50 bg-slate-950 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 text-emerald-400 font-bold truncate">
+                      <Volume2 className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{audioName || 'Voice Note / Audio Attached'}</span>
+                    </div>
+                    <span className="text-[10px] text-emerald-400/80 bg-emerald-950/80 border border-emerald-800/40 px-2 py-0.5 rounded-full font-semibold">
+                      Ready to Play
+                    </span>
+                  </div>
+                  <audio controls src={audioUrl} className="w-full h-10" />
+                  <p className="text-[10px] text-slate-400">
+                    Attached voice note will be linked to the task and playable by employee & manager.
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Submit Action Button */}
             <div className="pt-2 flex items-center justify-between">
               <Link
@@ -547,13 +717,23 @@ export default function TaskAssignmentPage() {
               <p>A new task has been assigned to you:</p>
 
               <div className="space-y-1 pl-2 border-l-2 border-blue-500">
-                <p><strong>Task:</strong> <span className="text-blue-300">{task || 'Image Editing'}</span></p>
+                <p><strong>Task:</strong> <span className="text-blue-300">{taskTitle || 'Design 3 Banner Creatives'}</span></p>
+                {taskDescription && (
+                  <p className="text-[11px] text-slate-300 italic">{taskDescription}</p>
+                )}
                 <p><strong>Priority:</strong> <span className="text-amber-300">{priorityFormatted}</span></p>
                 <p><strong>Deadline:</strong> <span className="text-emerald-300">{deadlineFormatted}</span></p>
                 {estimatedHours > 0 && (
                   <p><strong>Estimated Hours:</strong> <span className="text-purple-300">{estimatedHours}h</span></p>
                 )}
               </div>
+
+              {audioUrl && (
+                <div className="text-emerald-300 text-[11px] bg-emerald-950/40 border border-emerald-800/40 rounded-lg p-2 flex items-center gap-2">
+                  <Mic className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>[Voice Note / Audio Attached: {audioName || 'audio.mp3'}]</span>
+                </div>
+              )}
 
               {imagePreview && (
                 <div className="text-purple-300 text-[11px] bg-purple-950/40 border border-purple-800/40 rounded-lg p-2 flex items-center gap-2">

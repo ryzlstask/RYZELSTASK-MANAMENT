@@ -15,7 +15,7 @@ import {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTarget = searchParams.get('from') || '/tasks';
+  const redirectTarget = searchParams.get('from') || '/kanban';
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

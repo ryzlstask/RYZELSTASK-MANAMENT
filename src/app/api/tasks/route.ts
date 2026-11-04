@@ -35,12 +35,17 @@ export async function POST(req: Request) {
       ? dataStore.getDepartments().find(d => d.id === body.departmentId)
       : (assignedEmp ? dataStore.getDepartments().find(d => d.id === assignedEmp.department_id) : undefined);
 
+    const website = body.websiteId 
+      ? dataStore.getWebsites().find((w: any) => w.id === body.websiteId)
+      : undefined;
+
     const newTask = dataStore.addTask({
       title: taskText,
       description: body.description?.trim() || taskText,
       client_id: body.clientId,
       website_id: body.websiteId,
-      project_name: body.projectName || 'Operations',
+      website_domain: body.websiteDomain || body.website_domain || website?.domain || 'Operations',
+      project_name: body.projectName || website?.website_name || 'Operations',
       department_id: department?.id || 'dept-1',
       category: body.category || 'Website maintenance',
       assigned_employee_id: body.employeeId || undefined,
@@ -53,6 +58,9 @@ export async function POST(req: Request) {
       deliverables: body.deliverables || 'Completed deliverables as instructed.',
       deadline: body.deadline ? new Date(body.deadline).toISOString() : new Date(Date.now() + 3 * 86400000).toISOString(),
       image_url: body.imageUrl || body.image_url || undefined,
+      audio_url: body.audioUrl || body.audio_url || undefined,
+      audio_name: body.audioName || body.audio_name || undefined,
+      hidden_from_kanban: false,
       employee_remarks: body.employeeRemarks || undefined,
     });
 
@@ -140,12 +148,16 @@ export async function PUT(req: Request) {
 
     const updatedTask = dataStore.updateTask(body.id, {
       ...(body.status ? { status: body.status } : {}),
+      ...(typeof body.hidden_from_kanban === 'boolean' ? { hidden_from_kanban: body.hidden_from_kanban } : {}),
       ...(body.employee_remarks !== undefined ? { employee_remarks: body.employee_remarks } : {}),
       ...(body.title ? { title: body.title } : {}),
       ...(body.description ? { description: body.description } : {}),
       ...(body.deadline ? { deadline: new Date(body.deadline).toISOString() } : {}),
       ...(body.priority ? { priority: body.priority } : {}),
-      ...(body.image_url !== undefined ? { image_url: body.image_url } : {})
+      ...(body.image_url !== undefined ? { image_url: body.image_url } : {}),
+      ...(body.audio_url !== undefined ? { audio_url: body.audio_url } : {}),
+      ...(body.audio_name !== undefined ? { audio_name: body.audio_name } : {}),
+      ...(body.website_domain !== undefined ? { website_domain: body.website_domain } : {})
     });
 
     if (!updatedTask) {

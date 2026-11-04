@@ -26,7 +26,9 @@ import {
   X,
   ExternalLink,
   Check,
-  Power
+  Power,
+  Volume2,
+  Mic
 } from 'lucide-react';
 import { Task, Employee, Department, TaskStatus } from '@/types';
 
@@ -38,6 +40,9 @@ export default function OperationsSheetPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+
+  // Audio modal state
+  const [playingAudioUrl, setPlayingAudioUrl] = useState<string | null>(null);
 
   // Reminders tracking
   const [remindingTaskId, setRemindingTaskId] = useState<string | null>(null);
@@ -494,7 +499,7 @@ export default function OperationsSheetPage() {
                 <th className="py-3.5 px-3 w-28 border-r border-slate-800/60">Task ID</th>
                 <th className="py-3.5 px-4 w-52 border-r border-slate-800/60">Employee & Dept</th>
                 <th className="py-3.5 px-4 min-w-[240px] border-r border-slate-800/60">Task</th>
-                <th className="py-3.5 px-3 w-24 text-center border-r border-slate-800/60">Image</th>
+                <th className="py-3.5 px-3 w-28 text-center border-r border-slate-800/60">Attachments</th>
                 <th className="py-3.5 px-3 w-28 border-r border-slate-800/60">Added Date</th>
                 <th className="py-3.5 px-3 w-28 border-r border-slate-800/60">Due Date</th>
                 <th className="py-3.5 px-3 min-w-[150px] border-r border-slate-800/60">Status</th>
@@ -598,26 +603,42 @@ export default function OperationsSheetPage() {
                         </div>
                       </td>
 
-                      {/* 5. Image Attached */}
+                      {/* 5. Attachments (Image & Audio) */}
                       <td className="py-3 px-3 text-center border-r border-slate-800/60">
-                        {task.image_url ? (
-                          <div
-                            onClick={() => setLightboxImage(task.image_url || null)}
-                            className="w-10 h-10 rounded-lg overflow-hidden bg-slate-950 border border-slate-700 hover:border-emerald-400 cursor-pointer mx-auto transition-all group-hover:scale-105 relative"
-                            title="Click to view full image"
-                          >
-                            <img
-                              src={task.image_url}
-                              alt="Attached visual"
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
-                              <Eye className="w-3.5 h-3.5 text-white" />
+                        <div className="flex flex-col items-center justify-center gap-1.5">
+                          {task.image_url && (
+                            <div
+                              onClick={() => setLightboxImage(task.image_url || null)}
+                              className="w-9 h-9 rounded-lg overflow-hidden bg-slate-950 border border-slate-700 hover:border-emerald-400 cursor-pointer mx-auto transition-all group-hover:scale-105 relative"
+                              title="Click to view full image"
+                            >
+                              <img
+                                src={task.image_url}
+                                alt="Attached visual"
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <Eye className="w-3.5 h-3.5 text-white" />
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <span className="text-slate-400 text-[10px] italic">None</span>
-                        )}
+                          )}
+
+                          {task.audio_url && (
+                            <button
+                              type="button"
+                              onClick={() => setPlayingAudioUrl(task.audio_url || null)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800/50 text-emerald-300 font-bold text-[10px] hover:bg-emerald-900 transition-colors"
+                              title="Listen to attached voice note"
+                            >
+                              <Volume2 className="w-3 h-3" />
+                              <span>Voice</span>
+                            </button>
+                          )}
+
+                          {!task.image_url && !task.audio_url && (
+                            <span className="text-slate-400 text-[10px] italic">None</span>
+                          )}
+                        </div>
                       </td>
 
                       {/* 6. Added Date */}
@@ -958,6 +979,39 @@ export default function OperationsSheetPage() {
                 className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold"
               >
                 Save Remarks
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Audio Playback Modal */}
+      {playingAudioUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          onClick={() => setPlayingAudioUrl(null)}
+        >
+          <div
+            className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2 text-emerald-400">
+                <Volume2 className="w-5 h-5" />
+                <h3 className="text-sm font-bold text-white">Attached Voice Note</h3>
+              </div>
+              <button onClick={() => setPlayingAudioUrl(null)} className="text-slate-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <audio controls autoPlay src={playingAudioUrl} className="w-full" />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setPlayingAudioUrl(null)}
+                className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold"
+              >
+                Close
               </button>
             </div>
           </div>

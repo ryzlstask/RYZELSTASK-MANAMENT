@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  LayoutGrid,
   CheckSquare,
   TableProperties,
   Users2,
@@ -21,6 +22,7 @@ interface SidebarProps {
 }
 
 const navigationItems = [
+  { name: 'Live Kanban', href: '/kanban', icon: LayoutGrid, badge: 'Live' },
   { name: 'Assign Task', href: '/tasks', icon: CheckSquare, badge: 'Manager' },
   { name: 'Operations Sheet', href: '/task-sheet', icon: TableProperties, badge: 'Excel Grid' },
   { name: 'Employee Portal', href: '/employees', icon: Users2, badge: 'Team' },

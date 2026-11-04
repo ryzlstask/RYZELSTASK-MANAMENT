@@ -203,6 +203,9 @@ export interface Task {
   ai_confidence_score?: number;
   ai_explanation?: string;
   image_url?: string;
+  audio_url?: string;
+  audio_name?: string;
+  hidden_from_kanban?: boolean;
   employee_remarks?: string;
   employee_remarks_history?: Array<{ message: string; timestamp: string }>;
   last_reminder_sent_at?: string;

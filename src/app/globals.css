@@ -56,3 +56,18 @@ body {
 .glow-emerald {
   box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
 }
+
+/* Light Mode support */
+html.light {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  filter: invert(0.93) hue-rotate(180deg);
+}
+
+html.light img,
+html.light video,
+html.light audio,
+html.light canvas,
+html.light [style*="background-image"] {
+  filter: invert(1) hue-rotate(180deg);
+}

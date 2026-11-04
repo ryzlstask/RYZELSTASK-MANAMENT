@@ -2,7 +2,8 @@ import makeWASocket, {
   DisconnectReason,
   useMultiFileAuthState,
   Browsers,
-  WASocket
+  WASocket,
+  fetchLatestWaWebVersion
 } from '@whiskeysockets/baileys';
 import QRCode from 'qrcode';
 import pino from 'pino';
@@ -77,10 +78,21 @@ export async function getOrInitBaileysSocket(): Promise<WASocket | null> {
     console.log('[Baileys] Initializing socket with authDir:', authDir);
     const { state, saveCreds } = await useMultiFileAuthState(authDir);
 
+    let waVersion: [number, number, number] = [2, 3000, 1053070940];
+    try {
+      const v = await fetchLatestWaWebVersion({});
+      if (v?.version && Array.isArray(v.version)) {
+        waVersion = v.version;
+      }
+    } catch (e: any) {
+      console.warn('[Baileys] Using fallback WA Web protocol version:', waVersion);
+    }
+
     const sock = makeWASocket({
+      version: waVersion,
       auth: state,
       logger: pino({ level: 'silent' }),
-      browser: Browsers.windows('Desktop'),
+      browser: Browsers.ubuntu('Chrome'),
       connectTimeoutMs: 60000,
       defaultQueryTimeoutMs: 60000,
       syncFullHistory: false

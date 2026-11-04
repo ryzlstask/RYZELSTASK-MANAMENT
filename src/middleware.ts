@@ -22,7 +22,7 @@ export function middleware(request: NextRequest) {
   // If trying to access /login while already authenticated, redirect to /tasks
   if (pathname === '/login') {
     if (isAuthenticated) {
-      return NextResponse.redirect(new URL('/tasks', request.url));
+      return NextResponse.redirect(new URL('/kanban', request.url));
     }
     return NextResponse.next();
   }
